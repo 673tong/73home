@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Single Image WMS</title>
+    <script  src="http://libs.baidu.com/jquery/1.7.2/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://openlayers.org/en/v4.6.4/css/ol.css" type="text/css">
+    <link rel="stylesheet" href="css/map.css" type="text/css">
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="https://openlayers.org/en/v4.6.4/build/ol.js"></script>
+
+</head>
+<body>
+    <!--<button onclick="dingwei()">定位</button>-->
+    <button onclick="getLonLatClick()">拾取坐标</button>
+    <button onclick="timeChangeLayer()">播放图层</button>
+    <button onclick="clearTimer()">暂停图层</button>
+</div>
+<div id="map" class="map" ></div>
+<script>
+
+    //http://192.168.1.88:8080/geoserver/xian/wms?service=WMS&version=1.1.0&request=GetMap&layers=xian:xian
+    //&styles=&bbox=1.1974008577615164E7,3981752.9001171347,1.2235275117608164E7,4100545.596700834&width=768
+    // &height=349&srs=EPSG:3857&format=application/openlayers
+    var wmsLayer = new ol.layer.Tile({
+        title:"自定义wms",
+        source:new ol.source.TileWMS({
+            params:{
+                'FORMAT': 'image/png',
+                'VERSION': '1.1.1',
+                tiled: true,
+                STYLES: '',
+                LAYERS: 'xian'
+            },
+            url: 'http://192.168.1.88:8080/geoserver/xian/wms'
+        }),
+        zIndex:getZindex(),
+        visible:false
+    });
+
+// http://192.168.1.122:6080/arcgis/services/2013_hbhndvi/MapServer/WMSServer
+// http://192.168.1.122:6080/arcgis/services/2014_hbhndvi/MapServer/WMSServer
+// http://192.168.1.122:6080/arcgis/services/2015_hbhndvi/MapServer/WMSServer
+// http://192.168.1.122:6080/arcgis/services/2016_hbhndvi/MapServer/WMSServer
+// http://192.168.1.122:6080/arcgis/services/2017_hbhndvi/MapServer/WMSServer
+
+    var tileLayer = new ol.layer.Tile({
+        layerId: 123,
+        title: "123",
+        type: "base1",
+        source: new ol.source.TileWMS({}),
+        zIndex: getZindex()
+    });
+
+    //http://192.168.1.128:6080/arcgis/rest/services/2013_hbhndvi/MapServer?f=jsapi
+    var wms2013 = new ol.layer.Tile({
+        source: new ol.source.TileArcGISRest({
+            url: 'http://192.168.1.122:6080/arcgis/rest/services/2013_hbhndvi/MapServer'
+        })
+    });
+    var wms2014 = new ol.layer.Tile({
+        source: new ol.source.TileArcGISRest({
+            url: 'http://192.168.1.122:6080/arcgis/rest/services/2014_hbhndvi/MapServer'
+        })
+    });
+    var wms2015 = new ol.layer.Tile({
+        source: new ol.source.TileArcGISRest({
+            url: 'http://192.168.1.122:6080/arcgis/rest/services/2015_hbhndvi/MapServer'
+        })
+    });
+    var wms2016 = new ol.layer.Tile({
+        source: new ol.source.TileArcGISRest({
+            url: 'http://192.168.1.122:6080/arcgis/rest/services/2016_hbhndvi/MapServer'
+        })
+    });
+    var wms2017 = new ol.layer.Tile({
+        source: new ol.source.TileArcGISRest({
+            url: 'http://192.168.1.122:6080/arcgis/rest/services/2017_hbhndvi/MapServer'
+        })
+    });
+
+
+    //天地图路网
+    var tian_di_tu_road_layer = new ol.layer.Tile({
+        title: "天地图路网",
+        source: new ol.source.XYZ({
+            url: "http://t4.tianditu.com/DataServer?T=vec_w&x={x}&y={y}&l={z}"
+        }),
+        zIndex:getZindex(),
+        visible:false
+    });
+
+    //天地图文字标注
+    var tian_di_tu_annotation = new ol.layer.Tile({
+        title: "天地图文字标注",
+        source: new ol.source.XYZ({
+            url: 'http://t3.tianditu.com/DataServer?T=cva_w&x={x}&y={y}&l={z}'
+        })
+    });
+
+    //天地图影像
+    var tiandituSatelliteLayer = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+            url:'http://t3.tianditu.cn/DataServer?T=img_w&X={x}&Y={y}&L={z}'
+        }),
+        zIndex:getZindex(),
+        visible:false
+    })
+
+    //天地图影像 标注
+    var tiandituSatelliteLabel = new ol.layer.Tile({
+        source: new ol.source.XYZ({
+            url:'http://t3.tianditu.cn/DataServer?T=cia_w&X={x}&Y={y}&L={z}'
+        }),
+        zIndex:getZindex(),
+        visible:false
+    })
+
+    //var wmsLayers = [wmsLayer2013,wmsLayer2014,wmsLayer2015,wmsLayer2016,wmsLayer2017,tian_di_tu_road_layer];
+    var wmsLayers = [wms2013,wms2014,wms2015,wms2016,wms2017];
+
+    var map = new ol.Map({
+        layers: [tian_di_tu_road_layer,wms2013,wms2014,wms2015,wms2016,wms2017],
+        target: 'map',
+        view: new ol.View({
+            center: [11955935.997739986,4549149.738392264],//107.312649,37.826151//710592.4416966487, 4185458.198235354//12126505.226358354, 4064768.290149103西安
+            zoom: 11
+        }),
+        projection: 'EPSG:2343'
+    });
+    var allLayers = map.getLayers().getArray();
+    for(var j in allLayers){
+        allLayers[j].setVisible(true);
+    }
+
+    /**
+     * 定位
+     */
+    function dingwei() {
+        console.log("zoom",map.getView().getZoom());
+        //alert("108.899746,34.064351")
+        map.getView().animate({
+            autoPan: true,
+            autoPanAnimation: {
+                duration: 250
+            },
+            center:[660901.148082,4192510.482962]//西安秦岭动物园12119279.837110415,4035191.937517007
+        });
+        map.getView().setZoom(16);
+    }
+
+    /**
+     * 点击切换地图
+     * @param layer
+     */
+    var changMapTimer;
+    function changMap() {
+        //map.getLayers().remove();
+        //map.getLayers().clear();
+        //map.addLayer(tiandituSatelliteLayer);
+        //map.addLayer(tian_di_tu_annotation);
+        if(wmsIndex >= wmsLayers.length){
+            wmsIndex = 0;
+        }
+        for(var i=0;i<wmsLayers.length;i++){
+            if(i==wmsIndex){
+                wmsLayers[i].setVisible(true);
+                //wmsLayers[i].setZIndex(getZindex());
+                //map.addLayer(wmsLayers[i]);
+            }else{
+                wmsLayers[i].setVisible(false);
+            }
+        }
+        wmsIndex++;
+        //map.addLayer(wmsLayers[wmsIndex]);
+        changMapTimer = window.setTimeout(changMap,2000);
+    }
+
+    /**
+     * 定时切换图层
+     */
+    var wmsIndex=0;
+    function timeChangeLayer() {
+        if(changMapTimer)window.clearTimeout(changMapTimer);
+        changMap();
+    }
+
+    /**
+     * 暂停图层
+     */
+    function clearTimer() {
+        if(changMapTimer)window.clearTimeout(changMapTimer);
+    }
+
+    //拾取坐标
+    function getLonLatClick() {
+        map.on('singleclick', getLonLat);
+    }
+
+    /**
+     * 拾取坐标事件
+     */
+    function getLonLat(evt) {
+        var coordinate = evt.coordinate;
+        alert("XY轴坐标："+coordinate.toString());
+        return;
+        var point = proj4Transform("2343", "4326", coordinate[0], coordinate[1]);
+        var hdms = getFriePosLonLatFromPoint(point.x,point.y);
+        //var hdms = getFriePosLonLatFromPoint(coordinate[0], coordinate[1]);
+        var container = document.createElement('div');
+        container.className = 'ol-popup';
+        var content = document.createElement('div');
+        var closer = document.createElement('a');
+        content.className = 'ol-popup-code';
+        closer.className = 'ol-popup-closer';
+        content.innerHTML = '<p>当前获取的坐标:</p><code>' + "度分秒:" + hdms.stringFormat + '</code><br /><code>84坐标:' + parseFloat(point.x).toFixed(6) + ',' + parseFloat(point.y).toFixed(6) + '</code><br /><code>' + ol.coordinate.format(coordinate, '80坐标:{x},{y}', 6) + '</code>';
+        container.appendChild(closer);
+        container.appendChild(content);
+        var overlay = new ol.Overlay(({
+            position: coordinate,
+            element: container,
+            autoPan: true,
+            autoPanAnimation: {
+                duration: 250
+            }
+        }));
+        closer.onclick = function () {
+            map.removeOverlay(overlay);
+            closer.blur();
+            return false;
+        };
+        map.addOverlay(overlay);
+        //map.removeOverlay(helpTooltip);
+        map.getView().animate({
+            center:coordinate
+        });
+
+    }
+
+    /**
+     * 转换，从insr转换到outsr的坐标系
+     * @param inSR 比如4326
+     * @param outSR 比如2363
+     * @param lonX 经度
+     * @param latY 纬度
+     * @returns {*}
+     */
+    function proj4Transform(inSR,outSR,lonX,latY){
+        var epsg=inSR+"";
+        var outepsg=outSR+"";
+        if(epsg.indexOf("EPSG")<0){
+            var epsg = "EPSG:" + epsg;
+        }
+        if(outepsg.indexOf("EPSG")<0){
+            outepsg = "EPSG:" + outepsg;
+        }
+
+        var targetProj =new Proj4js.Proj(outepsg);
+        var currentProj =new Proj4js.Proj(epsg);
+        // 投影
+        var XY = new Proj4js.Point(lonX,latY);
+        var result=Proj4js.transform(currentProj,targetProj,XY);
+        return result;
+    }
+
+    //经纬度坐标转换成度分秒的格式
+    function getFriePosLonLatFromPoint (lonX,latY) {
+        var value = {};
+        var temp;
+        value.xD = parseInt(lonX);
+        temp=(lonX - value.xD) * 60;
+        value.xM = parseInt(temp);
+        value.xS = parseInt((temp - value.xM) * 60);
+
+        value.yD = parseInt(latY);
+        temp=(latY - value.yD) * 60;
+        value.yM = parseInt(temp);
+        value.yS = parseInt((temp - value.yM) * 60);
+
+        value.lon = value.xD+"&deg;"+value.xM+ "&prime;"+value.xS+"&Prime;";
+        value.lat = value.yD+"&deg;"+value.yM+ "&prime;"+value.yS+"&Prime;";
+        value.stringFormat = value.xD+"&deg;"+value.xM+ "&prime;"+value.xS+"&Prime;,&nbsp;"+value.yD+"&deg;"+value.yM+ "&prime;"+value.yS+"&Prime;";
+        return value;
+    }
+
+    var zindex=1;
+    function getZindex() {
+        return zindex++;
+    }
+
+    //实时获取层级变化，到达指定层级后显示或隐藏图层
+    //map.getView().on('change:resolution',checkZoom);
+    /*function checkZoom() {
+        if(map.getView().getZoom() > 8 && map.getView().getZoom() < 18){
+            map.addLayer(wmsLayer);
+            wmsLayer.setZIndex(getZindex());
+            wmsLayer.setVisible(true);
+            googleSatelliteLayer.setVisible(false);
+        }else if(map.getView().getZoom() > 18){
+            map.addLayer(googleSatelliteLayer);
+            //wmsLayer.setVisible(false);
+            googleSatelliteLayer.setZIndex(getZindex());
+            googleSatelliteLayer.setVisible(true);
+        }
+    }*/
+
+</script>
+</body>
+</html>
