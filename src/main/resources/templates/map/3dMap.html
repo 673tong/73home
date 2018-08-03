@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv=Content-Type content="text/html;charset=UTF-8">
+    <meta http-equiv=X-UA-Compatible content="IE=edge,chrome=1">
+    <meta content=always name=referrer>
+    <title>cesium三维地图示例</title>
+    <script type="text/javascript" src="${res}/jquery/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="${ctx}/static/jquery/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="${res}/cesium/Cesium.js"></script>
+    <script type="text/javascript" src="${res}/cesium/viewerCesiumNavigationMixin.js"></script>
+    <script type="text/javascript" src="${res}/cesium/mars3d-src.js"></script>
+    <link href="${res}/cesium/DrawWorker/DrawWorker.css" rel="stylesheet" type="text/css" />
+    <link href="${res}/cesium/Widgets/widgets.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="${css}/style.css" />
+    <link rel="stylesheet" href="${css}/new_file.css" />
+    <link rel="stylesheet" href="${css}/qlstyle.css" />
+    <link rel="stylesheet" href="${css}icon.css" type="text/css">
+    <link href="${res}/bootstrap/3.3.4/css/bootstrap.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="${js}/fullHeight.js"></script>
+    <script type="text/javascript" src="${js}/map/cesiumEvent.js"></script>
+    <script type="text/javascript" src="${js}/map/cesiumMap.js"></script>
+    <script type="text/javascript" src="${js}/map/cesiumStyle.js"></script>
+    <script type="text/javascript" src="${js}/map/cesiumTree.js"></script>
+    <script type="text/javascript" src="${js}/map/river.js"></script>
+    <script type="text/javascript" src="${js}/turf/turf.min.js"></script>
+    <link href="${ctx}/static/ckplayer/circle.css" rel="stylesheet" type="text/css">
+    <link href="${ctx}/static/ckplayer/jquery.datetimepicker.css" rel="stylesheet" type="text/css">
+    <script src="${ctx}/static/ckplayer/jquery.datetimepicker.js"></script>
+    <script src="${ctx}/static/ckplayer/ckplayer.js" charset="utf-8" type="text/javascript"></script>
+    <script src="${res}/zTree/3.5.17/js/jquery.ztree.all-3.5.js"></script>
+    <link rel="stylesheet" type="text/css" href="${res}/zTree/3.5.17/css/metroStyle/metroStyle.css" />
+    <link rel="stylesheet" type="text/css" href="${css}/cesiumMap.css" />
+    <link rel="stylesheet" href="${res}/css/map.css" type="text/css">
+    <link href="${ctx}/static/css/mapdialog.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="${js}/map/mapdialog.js"></script>
+    <style type="text/css">
+        .fixedcontrol{position:fixed;top:0px;right:0px;}
+        .snapimg{left: -287px;position: absolute;}
+        #lanrenzhijia{ max-height:100px; margin:10px auto; overflow:hidden;}
+        .dropdown-menu { min-width: auto;}
+        .vbtn{ display:inline-block; width:85px; height:35px; background-image:url(${img}/help/vbtn.png)}
+        .vbtn-xuanzhuang{ background-position:0 0}
+        .vbtn-yushua{ background-position:0 -40px}
+        .vbtn-dakai{ background-position:0 -80px;width:135px}
+        .vbtn-denguang1{ background-position:0 -117px}
+        .selectkibonone{height:280px}
+        .vbtn-denguang2{ background-position:0 bottom}
+        #video_pagination .row{    margin-right: -5px; margin-left: -5px;}
+        .video-ctr-mask{ width:100%; height:100%;background-color: rgba(255,255,255,0.5); z-index:9999; position:absolute; top:50px; left:0; display:none;}
+        object, embed {
+            width: 100%;
+            height: 100%;
+            display:block;
+            margin: 0;
+            /* Below from Eric Meyer's Reset */
+            padding: 0;
+            border: 0;
+            font-size: 100%;
+            font: inherit;
+            vertical-align: baseline;
+        }
+        .video-tab-btn i{
+            float:left;
+        }
+        .video-tab-btn span{
+            display: inline-block;
+            margin-top: 16px;
+        }
+        .video-tab-btn:hover i{
+            color:#f09928;
+        }
+        .video-tab-btn.clickadd i{
+            color:#f09928;
+        }
+        .video-tab-btn.clickadd span{
+            color: #2A3542;
+        }
+    </style>
+    <style type="text/css">
+
+        /*leaflet风格气泡窗口样式模板*/
+        .leaflet-popup {
+            position: absolute;
+            text-align: center;
+        }
+
+        .leaflet-popup-close-button {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 4px 4px 0 0;
+            text-align: center;
+            width: 18px;
+            height: 14px;
+            font: 16px/14px Tahoma, Verdana, sans-serif;
+            color: #c3c3c3;
+            text-decoration: none;
+            font-weight: bold;
+            background: transparent;
+        }
+
+        .leaflet-popup-content-wrapper {
+            text-align: center;
+            overflow-y: auto;
+            background: white;
+            box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+            padding: 1px;
+            text-align: left;
+            border-radius: 12px;
+        }
+
+        .leaflet-popup-content {
+            margin: 13px 19px;
+            line-height: 1.4;
+        }
+
+        .leaflet-popup-tip-container {
+            margin: 0 auto;
+            width: 40px;
+            height: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .leaflet-popup-tip {
+            background: white;
+            box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+            width: 17px;
+            height: 17px;
+            padding: 1px;
+            margin: -10px auto 0;
+            -webkit-transform: rotate(45deg);
+            -moz-transform: rotate(45deg);
+            -ms-transform: rotate(45deg);
+            -o-transform: rotate(45deg);
+            transform: rotate(45deg);
+        }
+
+        .map_tulinew {
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.8);;
+            position: absolute;
+            bottom: 28px;
+            z-index: 9999;
+            right: 5px;
+            display: none;
+            box-shadow: 2px 4px 5px 1px rgba(177, 177, 177, .75);
+        }
+        .map_tulinew .maptuli_ul{
+            float:left;
+        }
+        .map_tulinew .maptuli_ul li{
+            float:none;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="map_tulinew"></div>
+<ul class="nav_ul">
+    <li class="fuli">
+        <div class="map_menu" id="stopPatrol" onclick="stopFly()" style="display: none;">
+            <i class="fa fa-save"></i><span>结束回放</span>
+        </div>
+    </li>
+    <li class="fuli">
+        <div class="map_menu tools" id="startFly" onclick="addRiver()">
+            <i class="fa fa-reply"></i><span>测试飞行</span>
+        </div>
+    </li>
+    <li class="fuli">
+        <div class="map_menu" id="stopFly" onclick="stopFly()" style="display: none;">
+            <i class="fa fa-save"></i><span>结束飞行</span>
+        </div>
+    </li>
+    <li class="fuli" id="toolbar">
+        <div class="map_menu tools">
+            <i class="fa fa-file-text-o"></i><span>标绘</span><span class="caret"></span>
+        </div>
+        <ul class="zicaidan">
+            <li onclick="drawPoint()"><i class="fa fa-dot-circle-o"></i><span>矢量点</span>
+            </li>
+            <li onclick="drawLineString()"><i class="fa fa-line-chart"></i><span>矢量线</span>
+            </li>
+            <li onclick="drawPolygn()"><i class="fa fa-connectdevelop"></i><span>矢量面</span></li>
+        </ul>
+    </li>
+    <li class="fuli">
+        <div class="map_menu tools">
+            <i class="fa fa-wrench"></i><span>工具</span><span class="caret"></span>
+        </div>
+        <ul class="zicaidan">
+            <li onclick="measuerLength()"><i class="fa fa-arrows-h"></i><span>直线距离</span>
+            </li>
+            <li onclick="measuerLength2()"><i class="fa fa-arrows-h"></i><span>贴地距离</span>
+            </li>
+            <li onclick="measureArea()"><i class="fa fa-connectdevelop"></i><span>量面</span></li>
+            <li onclick="measureHeight()"><i class="fa fa-arrows-h"></i><span>高度</span>
+            </li>
+            <li onclick="measureHeight2()"><i class="fa fa-arrows-h"></i><span>高度（复杂）</span>
+            </li>
+            <li onclick="show('dialog')"><i class="fa fa-map-marker"></i><span>定位</span>
+            </li>
+            <!--
+            <li onclick="getLonLatClick()"><i class="fa fa-plus"></i><span>拾取</span>
+            </li>
+            -->
+        </ul>
+    </li>
+    <li class="fuli">
+        <div class="map_menu move tools">
+            <i class="fa fa-wrench"></i><span>移动工具</span><span class="caret"></span>
+        </div>
+    </li>
+    <li class="fuli">
+        <div class="map_menu tools" onclick="clearDraw()">
+            <i class="fa fa-reply"></i><span>清除</span>
+        </div>
+    </li>
+    <li class="fuli">
+        <div class="map_menu tools" onclick="fullMap()">
+            <i class="fa fa-reply"></i><span>还原</span>
+        </div>
+    </li>
+    <li class="fuli">
+        <div class="map_menu" onclick="onchange2()">
+            <i class="fa fa-reply"></i><span>二维地图</span>
+        </div>
+    </li>
+</ul>
+<div class="mapgraphy">
+    <div class="mapgraphy_header">
+        <i class="fa fa-database"></i> <span>图层数据</span>
+        <span class="floatright">
+				<i class="fa fa-hand-o-left" title="前一视图" onclick="previousLayer()" style="font-size: 12px;"></i>
+				<i class="fa fa-hand-o-right" title="后一视图" onclick="nextLayer()" style="font-size: 12px;"></i>
+				<i id="slideClickId" class="fa fa-angle-double-down " onclick="slideClick(this)"></i>
+			</span>
+    </div>
+    <ul id="mapTreeMenu" class="ztree tree_body "></ul>
+</div>
+<div id="cesiumContainer" class="fullheightDiv" crossorigin="anonymous">
+    <div class="scale_div cameradiv" >
+        <span>视角高度：</span>
+        <span id="cameraHeight" class="bili_div"></span>
+        <span >海拔：</span>
+        <span id="altitude" class="bili_div"></span>
+        <span >坐标：</span>
+        <span id="mouse-position" class="pisition_div" style="margin-right:15px;"></span>
+        <span >比例尺：</span>
+    </div>
+</div>
+<div id="trackPopUp" style="display:none;"></div>
+<div class="map_dialognew" id="dialog">
+    <div class="dialog_topnew">
+        <h4>坐标定位</h4>
+        <a type="button" class="close close_right" onclick="closeDiv('dialog')"> × </a>
+    </div>
+    <div class="maptab_div">
+        <ul class="maptab_ul border_bottom">
+            <li class="maptab_add" id="maptoolsPosition-A-jwd">经纬度</li>
+            <li id="maptoolsPosition-A-84">84坐标</li>
+        </ul>
+        <div class="maptab_seconde">
+            <div id="maptoolsPosition-Div-jwd">
+                <table class="mapgis_table">
+                    <tbody>
+                    <tr>
+                        <td>经度：</td>
+                        <td><input style="width: 95px;" type="text" id="txtLonD"  onkeyup="if(isNaN(value))execCommand('undo')"
+                                   onafterpaste="if(isNaN(value))execCommand('undo')" /> ° <input
+                                style="width: 95px;" type="text" id="txtLonM"
+                                onkeyup="if(isNaN(value))execCommand('undo')"
+                                onafterpaste="if(isNaN(value))execCommand('undo')" /> ′ <input
+                                style="width: 95px;" type="text" id="txtLonS"
+                                onkeyup="if(isNaN(value))execCommand('undo')"
+                                onafterpaste="if(isNaN(value))execCommand('undo')" /> ″</td>
+                    </tr>
+                    <tr>
+                        <td>纬度：</td>
+                        <td><input style="width: 95px;" type="text" id="txtLatD"
+                                   onkeyup="if(isNaN(value))execCommand('undo')"
+                                   onafterpaste="if(isNaN(value))execCommand('undo')" /> ° <input
+                                style="width: 95px;" type="text" id="txtLatM"
+                                onkeyup="if(isNaN(value))execCommand('undo')"
+                                onafterpaste="if(isNaN(value))execCommand('undo')" /> ′ <input
+                                style="width: 95px;" type="text" id="txtLatS"
+                                onkeyup="if(isNaN(value))execCommand('undo')"
+                                onafterpaste="if(isNaN(value))execCommand('undo')" /> ″</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div class="close_div">
+                                <button class="use_btm" id="maptoolsPosition-Btn-jwd">定位</button>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="maptoolsPosition-Div-84">
+                <table class="mapgis_table">
+                    <tbody>
+                    <tr>
+                        <td>X轴坐标：</td>
+                        <td><input type="text" id="txtCoordinateLon"
+                                   onkeyup="if(isNaN(value))execCommand('undo')"
+                                   onafterpaste="if(isNaN(value))execCommand('undo')" /></td>
+                    </tr>
+                    <tr>
+                        <td>Y轴坐标：</td>
+                        <td><input type="text" id="txtCoordinateLat"
+                                   onkeyup="if(isNaN(value))execCommand('undo')"
+                                   onafterpaste="if(isNaN(value))execCommand('undo')" /></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div class="close_div">
+                                <button class="use_btm" id="maptoolsPosition-Btn-84">定位</button>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="cesimu_div" style="display:none">
+    <div class="cesimu_draggle"></div>
+    <ul>
+        <li>
+            <button class="cesimu1" onclick="moveForward()" title="放大"></button>
+        </li>
+        <li>
+            <button class="cesimu2" onclick="moveUp()" title="上移"></button>
+        </li>
+        <li>
+            <button class="cesimu3" onclick="moveBackward()" title="缩小"></button>
+        </li>
+        <li>
+            <button class="cesimu4" onclick="moveLeft()" title="左移"></button>
+        </li>
+        <li>
+            <button class="cesimu5 move" title="关闭"></button>
+        </li>
+        <li>
+            <button class="cesimu6" onclick="moveRight()" title="右移"></button>
+        </li>
+        <li>
+            <button class="cesimu7" onclick="rightRotate()" title="顺时针旋转"></button>
+        </li>
+        <li>
+            <button class="cesimu8" onclick="moveDown()" title="下移"></button>
+        </li>
+        <li>
+            <button class="cesimu9" onclick="leftRotate()" title="逆时针旋转"></button>
+        </li>
+    </ul>
+</div>
+<script>
+    function initTreeMenu(){
+        var treeDataJson = ${treeData};
+        var setting = {
+            view: {
+                showLine:false,
+                showIcon: true,
+                addDiyDom: addDiyDom
+            },
+            check: {
+                enable: true
+            },
+            data: {
+                simpleData: {
+                    enable: true
+                }
+            },
+            callback: {
+                onCheck : treeCheckHandler,
+                onClick : treeClickHandler
+            }
+        };
+        $.fn.zTree.init($("#mapTreeMenu"), setting, treeDataJson);
+    }
+</script>
+</body>
+</html>
